@@ -1,0 +1,28 @@
+/* Fondo general */
+body {
+  background: linear-gradient(135deg, #0d6efd, #6610f2);
+  min-height: 100vh;
+}
+
+/* Card principal */
+.card {
+  border-radius: 15px;
+}
+
+/* Footer fijo abajo */
+footer {
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+/* Texto escuchado */
+#textoEscuchado {
+  min-height: 50px;
+}
+
+/* Orden recibida */
+#ordenRecibida {
+  min-height: 50px;
+  font-size: 1.2rem;
+}

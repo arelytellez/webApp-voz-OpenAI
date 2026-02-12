@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Control por Voz con IA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Estilos personalizados -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- ================= NAVBAR ================= -->
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+      <span class="navbar-brand mb-0 h1">
+        🤖 Control por Voz con OpenAI
+      </span>
+    </div>
+  </nav>
+
+  <!-- ================= CONTENIDO PRINCIPAL ================= -->
+  <div class="container mt-5">
+
+    <div class="card shadow p-4">
+
+      <h3 class="text-center mb-4">Sistema de Reconocimiento de Órdenes</h3>
+
+      <p><strong>Estado Micrófono:</strong> 
+        <span id="estadoMicrofono" class="text-primary">Inicializando...</span>
+      </p>
+
+      <p><strong>Estado Sistema:</strong> 
+        <span id="estadoSistema" class="text-warning">Cargando...</span>
+      </p>
+
+      <hr>
+
+      <p><strong>Texto Escuchado:</strong></p>
+      <div class="alert alert-secondary" id="textoEscuchado">
+        ---
+      </div>
+
+      <p><strong>Orden Recibida:</strong></p>
+      <div class="alert alert-info fw-bold" id="ordenRecibida">
+        Ninguna
+      </div>
+
+      <p><strong>Resultado:</strong></p>
+      <div class="alert alert-light" id="resultado">
+        Esperando activación...
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="bg-dark text-white text-center p-3 mt-5">
+    Desarrollado por: TU_NOMBRE_AQUI | 2026
+  </footer>
+
+  <!-- Script principal -->
+  <script src="app.js"></script>
+
+</body>
+</html>
+
