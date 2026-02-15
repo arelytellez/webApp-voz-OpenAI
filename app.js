@@ -1,29 +1,36 @@
 /************************************************************
- * CONTROL POR VOZ CON IA
- * API KEY obtenida desde MockAPI
+ * CONTROL POR VOZ CON IA - API KEY DESDE MOCKAPI
+ * Mantiene misma apariencia y funcionalidad
  ************************************************************/
 
 /* ==========================
    VARIABLES GLOBALES
    ========================== */
 
+// Aquí se almacenará la API Key obtenida dinámicamente
 let OPENAI_API_KEY = null;
 
+// Endpoint MockAPI
 const MOCKAPI_URL = "https://698def71aded595c2530911b.mockapi.io/api/v1/apikey";
 
+/* ==========================
+   ELEMENTOS DEL DOM
+   ========================== */
 const estadoMicrofono = document.getElementById("estadoMicrofono");
 const estadoSistema = document.getElementById("estadoSistema");
 const textoEscuchado = document.getElementById("textoEscuchado");
 const ordenRecibida = document.getElementById("ordenRecibida");
 const resultado = document.getElementById("resultado");
 
+/* ==========================
+   VARIABLES DE CONTROL
+   ========================== */
 let suspendido = false;
 let temporizadorSuspension;
 
 /* ==========================
    COMANDOS PERMITIDOS
    ========================== */
-
 const comandosValidos = [
   "avanzar",
   "retroceder",
@@ -37,16 +44,21 @@ const comandosValidos = [
 ];
 
 /* ==========================
-   OBTENER API KEY
+   🔑 OBTENER API KEY DESDE MOCKAPI
    ========================== */
-
 async function obtenerApiKey() {
   try {
     const response = await fetch(MOCKAPI_URL);
     const data = await response.json();
+
+    // Tomamos el primer registro
     OPENAI_API_KEY = data[0].apikey;
-    estadoSistema.textContent = "Sistema listo";
+
+    console.log("API KEY cargada correctamente");
+    estadoSistema.textContent = "Sistema listo para usar";
+
   } catch (error) {
+    console.error("Error al obtener API Key:", error);
     estadoSistema.textContent = "Error al cargar API Key";
   }
 }
@@ -54,7 +66,6 @@ async function obtenerApiKey() {
 /* ==========================
    CONFIGURACIÓN DE VOZ
    ========================== */
-
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -66,7 +77,6 @@ recognition.interimResults = true;
 /* ==========================
    MICRÓFONO ACTIVO
    ========================== */
-
 recognition.onstart = () => {
   estadoMicrofono.textContent = "🎧 Micrófono activo";
   estadoSistema.textContent = "Escuchando...";
@@ -75,7 +85,6 @@ recognition.onstart = () => {
 /* ==========================
    RESULTADOS DE VOZ
    ========================== */
-
 recognition.onresult = async (event) => {
 
   reiniciarSuspension();
@@ -94,17 +103,17 @@ recognition.onresult = async (event) => {
   const textoActual = (textoParcial || textoFinal).toLowerCase().trim();
   textoEscuchado.textContent = textoActual;
 
-  /* Activar con Alexa */
-  if (textoActual.includes("alexa")) {
+  /* DESPERTAR CON ALEXA */
+  if (textoActual.includes("nova")) {
     suspendido = false;
     estadoSistema.textContent = "🔊 Sistema activado";
-    resultado.textContent = "Esperando órdenes...";
     ordenRecibida.textContent = "Ninguna";
+    resultado.textContent = "Sistema activo, esperando órdenes...";
     return;
   }
 
   if (suspendido) {
-    estadoSistema.textContent = "😴 Suspendido (di 'Alexa')";
+    estadoSistema.textContent = "😴 Suspendido (di 'Nova')";
     return;
   }
 
@@ -120,26 +129,24 @@ recognition.onresult = async (event) => {
 /* ==========================
    SUSPENSIÓN AUTOMÁTICA
    ========================== */
-
 function reiniciarSuspension() {
   clearTimeout(temporizadorSuspension);
 
   temporizadorSuspension = setTimeout(() => {
     suspendido = true;
-    estadoSistema.textContent = "😴 Suspendido (di 'Alexa')";
+    estadoSistema.textContent = "😴 Suspendido (di 'Nova')";
     textoEscuchado.textContent = "---";
     ordenRecibida.textContent = "Ninguna";
   }, 5000);
 }
 
 /* ==========================
-   VALIDACIÓN CON OPENAI
+   VALIDAR ORDEN CON IA
    ========================== */
-
 async function validarOrdenIA(texto) {
 
   if (!OPENAI_API_KEY) {
-    resultado.textContent = "API Key no disponible";
+    resultado.textContent = "⚠ API Key no disponible";
     return;
   }
 
@@ -177,28 +184,34 @@ o "Orden no reconocida"
 
     if (comandosValidos.includes(respuesta)) {
       ordenRecibida.textContent = respuesta;
-      ordenRecibida.className = "alert alert-success fw-bold";
-      resultado.textContent = "Orden válida ejecutada";
+      ordenRecibida.className = "fw-bold text-success";
+      resultado.textContent = "✅ Orden válida";
+      estadoSistema.textContent = "Orden ejecutada";
     } else {
       ordenRecibida.textContent = "Orden no reconocida";
-      ordenRecibida.className = "alert alert-danger fw-bold";
-      resultado.textContent = "Orden no reconocida";
+      ordenRecibida.className = "fw-bold text-danger";
+      resultado.textContent = "❌ Orden no reconocida";
+      estadoSistema.textContent = "Esperando nueva orden...";
     }
 
   } catch (error) {
-    resultado.textContent = "Error al conectar con OpenAI";
+    resultado.textContent = "⚠ Error con la IA";
   }
 }
 
 /* ==========================
    INICIO DE LA APLICACIÓN
    ========================== */
-
 async function iniciarAplicacion() {
+
+  // 1️⃣ Obtener API Key
   await obtenerApiKey();
+
+  // 2️⃣ Iniciar reconocimiento de voz
   recognition.start();
   reiniciarSuspension();
 }
 
 iniciarAplicacion();
+
 
