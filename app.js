@@ -118,7 +118,7 @@ async function iniciarAplicacion() {
   await obtenerApiKey();
 
   hablar(
-    "Hola, soy Nova, tu asistente de voz. Estoy lista para recibir tus instrucciones.",
+    "Hola, soy Nova, tu asistente de voz. Estoy lista para recibir tus instrucciones.Recuerda comenzar cada comando diciendo mi nombre ",
     () => {
       recognition.start();
       estadoSistema.textContent = "Di 'Nova' para activarme";
