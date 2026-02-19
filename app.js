@@ -40,15 +40,17 @@ const comandosValidos = [
 ];
 
 /* ==========================
-   VOZ DE NOVA (SÍNTESIS)
+   VOZ DE NOVA
    ========================== */
-function hablar(texto) {
+function hablar(texto, callback = null) {
   const mensaje = new SpeechSynthesisUtterance(texto);
   mensaje.lang = "es-MX";
-  mensaje.rate = 1;
-  mensaje.pitch = 1;
-  mensaje.volume = 1;
-  window.speechSynthesis.cancel(); // evita que se encimen voces
+
+  mensaje.onend = () => {
+    if (callback) callback();
+  };
+
+  window.speechSynthesis.cancel();
   window.speechSynthesis.speak(mensaje);
 }
 
@@ -60,8 +62,6 @@ async function obtenerApiKey() {
     const response = await fetch(MOCKAPI_URL);
     const data = await response.json();
     OPENAI_API_KEY = data[0].apikey;
-
-    estadoSistema.textContent = "Sistema listo para usar";
 
   } catch (error) {
     estadoSistema.textContent = "Error al cargar API Key";
@@ -113,8 +113,7 @@ recognition.onresult = async (event) => {
     suspendido = false;
     estadoSistema.textContent = "🔊 Sistema activado";
     ordenRecibida.textContent = "Ninguna";
-    resultado.textContent = "Sistema activo, esperando órdenes...";
-    hablar("Sí, te escucho.");
+    resultado.textContent = "";
     return;
   }
 
@@ -151,10 +150,7 @@ function reiniciarSuspension() {
    ========================== */
 async function validarOrdenIA(texto) {
 
-  if (!OPENAI_API_KEY) {
-    resultado.textContent = "⚠ API Key no disponible";
-    return;
-  }
+  if (!OPENAI_API_KEY) return;
 
   try {
     const response = await fetch(
@@ -188,25 +184,16 @@ o "Orden no reconocida"
     const data = await response.json();
     const respuesta = data.choices[0].message.content.trim();
 
+    // Solo actualizar internamente, no mostrar en pantalla ni decir por voz
     if (comandosValidos.includes(respuesta)) {
-
       ordenRecibida.textContent = respuesta;
-      resultado.textContent = "✅ Orden válida";
-      estadoSistema.textContent = "Orden ejecutada";
-
-      hablar("Orden ejecutada correctamente.");
-
+      estadoSistema.textContent = "Orden ejecutada"; // opcional para debug
     } else {
-
-      ordenRecibida.textContent = "Orden no reconocida";
-      resultado.textContent = "❌ Orden no reconocida";
-      estadoSistema.textContent = "Esperando nueva orden...";
-
-      hablar("No reconocí la orden, intenta nuevamente.");
+      estadoSistema.textContent = "Esperando nueva orden..."; // opcional para debug
     }
 
   } catch (error) {
-    resultado.textContent = "⚠ Error con la IA";
+    estadoSistema.textContent = "Error con la IA";
   }
 }
 
@@ -217,13 +204,17 @@ async function iniciarAplicacion() {
 
   await obtenerApiKey();
 
-  recognition.start();
-  reiniciarSuspension();
+  estadoMicrofono.textContent = "🎤 Micrófono inactivo";
+  estadoSistema.textContent = "Iniciando asistente...";
 
-  // Mensaje de bienvenida SOLO UNA VEZ
-  setTimeout(() => {
-    hablar("Hola, soy Nova, tu asistente de voz. Estoy listo para recibir tus instrucciones. Recuerda comenzar cada comando diciendo mi nombre.");
-  }, 3000);
+  // 🎙 INTRODUCCIÓN Y ACTIVACIÓN AUTOMÁTICA
+  hablar(
+    "Hola, soy Nova, tu asistente de voz. Estoy lista para recibir tus instrucciones. Recuerda comenzar cada comando diciendo mi nombre.",
+    () => {
+      recognition.start();
+      reiniciarSuspension();
+    }
+  );
 }
 
 iniciarAplicacion();
