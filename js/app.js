@@ -5,10 +5,7 @@ const estadoMicrofono = document.getElementById("estadoMicrofono");
 const estadoSistema = document.getElementById("estadoSistema");
 const textoEscuchado = document.getElementById("textoEscuchado");
 const ordenRecibida = document.getElementById("ordenRecibida");
-const resultado = document.getElementById("resultado");
 const boton = document.getElementById("btnActivar");
-
-let sistemaActivo = false;
 
 /* ==========================
    COMANDOS
@@ -26,15 +23,14 @@ const comandosValidos = [
 ];
 
 /* ==========================
-   VOZ
+   VOZ (NO BLOQUEANTE)
 ========================== */
-function hablar(texto, callback = null) {
+function hablar(texto) {
+  window.speechSynthesis.cancel();
+
   const mensaje = new SpeechSynthesisUtterance(texto);
   mensaje.lang = "es-ES";
-
-  mensaje.onend = () => {
-    if (callback) callback();
-  };
+  mensaje.rate = 1;
 
   window.speechSynthesis.speak(mensaje);
 }
@@ -71,41 +67,46 @@ recognition.onerror = (event) => {
   estadoSistema.textContent = "Error micrófono: " + event.error;
 };
 
+/* 🔥 Reinicio automático */
+recognition.onend = () => {
+  recognition.start();
+};
+
 recognition.onresult = (event) => {
+
   const texto = event.results[event.results.length - 1][0].transcript
     .toLowerCase()
     .trim();
 
   textoEscuchado.textContent = texto;
 
-  /* ACTIVACIÓN */
-  if (texto.includes("nova")) {
-    sistemaActivo = true;
-    estadoSistema.textContent = "Sistema activado";
-    hablar("Te escucho");
-    return;
-  }
+  // Solo ejecutar si incluye "nova"
+  if (!texto.includes("nova")) return;
 
-  if (!sistemaActivo) {
-    estadoSistema.textContent = "Di 'Nova' para activarme";
-    return;
-  }
-
-  /* BUSCAR COMANDO */
   const comandoEncontrado = comandosValidos.find(cmd =>
     texto.includes(cmd)
   );
 
   if (comandoEncontrado) {
+
     ordenRecibida.textContent = comandoEncontrado;
     estadoSistema.textContent = "Orden ejecutada";
-    hablar("Orden " + comandoEncontrado);
-  } else {
-    estadoSistema.textContent = "Orden no reconocida";
-  }
 
-  sistemaActivo = false;
+    enviarComandoAlCarrito(comandoEncontrado);
+
+  } else {
+    estadoSistema.textContent = "Comando no reconocido";
+  }
 };
+
+/* ==========================
+   ENVÍO AL CARRITO
+========================== */
+function enviarComandoAlCarrito(comando) {
+  console.log("Enviando al carrito:", comando);
+
+  // Aquí conectas tu Arduino
+}
 
 /* ==========================
    INICIAR
@@ -115,18 +116,19 @@ async function iniciarAplicacion() {
   boton.disabled = true;
   boton.innerText = "Nova Activada";
 
+  estadoSistema.textContent = "Inicializando sistema...";
+
   await obtenerApiKey();
 
-  hablar(
-    "Hola, soy Nova, tu asistente de voz. Estoy lista para recibir tus instrucciones.Recuerda comenzar cada comando diciendo mi nombre ",
-    () => {
-      recognition.start();
-      estadoSistema.textContent = "Di 'Nova' para activarme";
-    }
-  );
+  // 🔥 MOSTRAR MENSAJE EN PANTALLA
+  estadoSistema.textContent = "Di: Nova + comando";
+
+  // 🔥 OPCIONAL: mensaje hablado (no bloquea)
+  hablar("Hola, soy Nova. Di Nova más la orden.");
+
+  recognition.start();
 }
 
 boton.addEventListener("click", iniciarAplicacion);
-
 
 
