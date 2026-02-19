@@ -2,73 +2,181 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Control por Voz con IA</title>
+  <title>Nova - Asistente de Voz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- FAVICON -->
-  <link rel="icon" type="image/png" href="img/favicon.png">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      min-height: 100vh;
+    }
 
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    .app-layout {
+      display: flex;
+      min-height: 100vh;
+    }
 
-  <!-- Bootstrap -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    .sidebar {
+      width: 260px;
+      background: #1f2a3c;
+      padding: 30px 20px;
+      color: white;
+    }
 
-  <!-- Estilos personalizados -->
-  <link rel="stylesheet" href="styles.css">
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .sidebar li {
+      background: #34495e;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card {
+      background: white;
+      width: 80%;
+      max-width: 800px;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .descripcion {
+      margin-bottom: 20px;
+      color: #555;
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .status {
+      margin: 10px 0;
+      font-weight: bold;
+    }
+
+    hr {
+      margin: 20px 0;
+    }
+
+    .section {
+      margin-bottom: 25px;
+    }
+
+    .section strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    .box {
+      background: #f1f5f9;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .highlight {
+      background: #cde7f0;
+      padding: 18px;
+      border-radius: 8px;
+      font-weight: bold;
+      color: #0f4c5c;
+      font-size: 16px;
+    }
+
+    .result {
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 8px;
+      color: #666;
+    }
+  </style>
 </head>
 
 <body>
 
-  <!-- ================= NAVBAR ================= -->
-  <nav class="navbar navbar-dark bg-dark">
-    <div class="container-fluid">
-      <span class="navbar-brand mb-0 h1">
-        🤖 Control por Voz con OpenAI
-      </span>
-    </div>
-  </nav>
+<div class="app-layout">
 
-  <!-- ================= CONTENIDO PRINCIPAL ================= -->
-  <div class="container mt-5">
+  <aside class="sidebar">
+    <h2>Órdenes Disponibles</h2>
+    <ul>
+      <li>Nova avanzar</li>
+      <li>Nova retroceder</li>
+      <li>Nova detener</li>
+      <li>Nova vuelta derecha</li>
+      <li>Nova vuelta izquierda</li>
+      <li>Nova 90 derecha</li>
+      <li>Nova 90 izquierda</li>
+      <li>Nova 360 derecha</li>
+      <li>Nova 360 izquierda</li>
+    </ul>
+  </aside>
 
-    <div class="card shadow p-4">
+  <main class="main-content">
+    <div class="card">
 
-      <h3 class="text-center mb-4">Sistema de Reconocimiento de Órdenes</h3>
+      <h1>Nova - Asistente de Voz</h1>
 
-      <p><strong>Estado Micrófono:</strong> 
-        <span id="estadoMicrofono" class="text-primary">Inicializando...</span>
-      </p>
+      <!-- TEXTO AGREGADO -->
+      <div class="descripcion">
+        Hola, soy Nova, tu asistente de voz. Estoy lista para recibir tus instrucciones. Recuerda comenzar cada comando diciendo mi nombre.
+      </div>
 
-      <p><strong>Estado Sistema:</strong> 
-        <span id="estadoSistema" class="text-warning">Cargando...</span>
-      </p>
+      <div id="estadoMicrofono" class="status">
+        🎤 Micrófono inactivo
+      </div>
+
+      <div id="estadoSistema" class="status">
+        💤 Esperando activación
+      </div>
 
       <hr>
 
-      <p><strong>Texto Escuchado:</strong></p>
-      <div class="alert alert-secondary" id="textoEscuchado">
-        ---
+      <div class="section">
+        <strong>Texto Escuchado:</strong>
+        <div class="box" id="textoEscuchado">---</div>
       </div>
 
-      <p><strong>Orden Recibida:</strong></p>
-      <div class="alert alert-info fw-bold" id="ordenRecibida">
-        Ninguna
+      <div class="section">
+        <strong>Orden Recibida:</strong>
+        <div class="highlight" id="ordenRecibida">Ninguna</div>
       </div>
 
-      <p><strong>Resultado:</strong></p>
-      <div class="alert alert-light" id="resultado">
-        Esperando activación...
+      <div class="section">
+        <strong>Resultado:</strong>
+        <div class="result" id="resultado">Esperando activación...</div>
       </div>
 
     </div>
-  </div>
+  </main>
 
-  <!-- ================= FOOTER ================= -->
-  <footer class="bg-dark text-white text-center p-3 mt-5">
-    Desarrollado por: ARELY TELLEZ SALAS | 2026
-  </footer>
+</div>
 
-  <!-- Script principal -->
-  <script src="app.js"></script>
+<script src="app.js"></script>
 
 </body>
 </html>
+
+
+
+

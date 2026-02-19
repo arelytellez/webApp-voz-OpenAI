@@ -1,16 +1,12 @@
 /************************************************************
  * CONTROL POR VOZ CON IA - API KEY DESDE MOCKAPI
- * Mantiene misma apariencia y funcionalidad
  ************************************************************/
 
 /* ==========================
    VARIABLES GLOBALES
    ========================== */
 
-// Aquí se almacenará la API Key obtenida dinámicamente
 let OPENAI_API_KEY = null;
-
-// Endpoint MockAPI
 const MOCKAPI_URL = "https://698def71aded595c2530911b.mockapi.io/api/v1/apikey";
 
 /* ==========================
@@ -44,21 +40,30 @@ const comandosValidos = [
 ];
 
 /* ==========================
-   🔑 OBTENER API KEY DESDE MOCKAPI
+   VOZ DE NOVA (SÍNTESIS)
+   ========================== */
+function hablar(texto) {
+  const mensaje = new SpeechSynthesisUtterance(texto);
+  mensaje.lang = "es-MX";
+  mensaje.rate = 1;
+  mensaje.pitch = 1;
+  mensaje.volume = 1;
+  window.speechSynthesis.cancel(); // evita que se encimen voces
+  window.speechSynthesis.speak(mensaje);
+}
+
+/* ==========================
+   🔑 OBTENER API KEY
    ========================== */
 async function obtenerApiKey() {
   try {
     const response = await fetch(MOCKAPI_URL);
     const data = await response.json();
-
-    // Tomamos el primer registro
     OPENAI_API_KEY = data[0].apikey;
 
-    console.log("API KEY cargada correctamente");
     estadoSistema.textContent = "Sistema listo para usar";
 
   } catch (error) {
-    console.error("Error al obtener API Key:", error);
     estadoSistema.textContent = "Error al cargar API Key";
   }
 }
@@ -103,12 +108,13 @@ recognition.onresult = async (event) => {
   const textoActual = (textoParcial || textoFinal).toLowerCase().trim();
   textoEscuchado.textContent = textoActual;
 
-  /* DESPERTAR CON ALEXA */
+  /* ACTIVACIÓN CON NOVA */
   if (textoActual.includes("nova")) {
     suspendido = false;
     estadoSistema.textContent = "🔊 Sistema activado";
     ordenRecibida.textContent = "Ninguna";
     resultado.textContent = "Sistema activo, esperando órdenes...";
+    hablar("Sí, te escucho.");
     return;
   }
 
@@ -183,15 +189,20 @@ o "Orden no reconocida"
     const respuesta = data.choices[0].message.content.trim();
 
     if (comandosValidos.includes(respuesta)) {
+
       ordenRecibida.textContent = respuesta;
-      ordenRecibida.className = "fw-bold text-success";
       resultado.textContent = "✅ Orden válida";
       estadoSistema.textContent = "Orden ejecutada";
+
+      hablar("Orden ejecutada correctamente.");
+
     } else {
+
       ordenRecibida.textContent = "Orden no reconocida";
-      ordenRecibida.className = "fw-bold text-danger";
       resultado.textContent = "❌ Orden no reconocida";
       estadoSistema.textContent = "Esperando nueva orden...";
+
+      hablar("No reconocí la orden, intenta nuevamente.");
     }
 
   } catch (error) {
@@ -204,12 +215,15 @@ o "Orden no reconocida"
    ========================== */
 async function iniciarAplicacion() {
 
-  // 1️⃣ Obtener API Key
   await obtenerApiKey();
 
-  // 2️⃣ Iniciar reconocimiento de voz
   recognition.start();
   reiniciarSuspension();
+
+  // Mensaje de bienvenida SOLO UNA VEZ
+  setTimeout(() => {
+    hablar("Hola, soy Nova, tu asistente de voz. Estoy listo para recibir tus instrucciones. Recuerda comenzar cada comando diciendo mi nombre.");
+  }, 3000);
 }
 
 iniciarAplicacion();
