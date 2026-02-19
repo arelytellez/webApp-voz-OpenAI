@@ -209,7 +209,7 @@ async function iniciarAplicacion() {
 
   // 🎙 INTRODUCCIÓN Y ACTIVACIÓN AUTOMÁTICA
   hablar(
-    "Hola, soy Nova, tu asistente de voz. Estoy lista para recibir tus instrucciones. Recuerda comenzar cada comando diciendo mi nombre.",
+    "Hola, soy Nova, tu asistente de voz. Estoy listo para recibir tus instrucciones. Recuerda comenzar cada comando diciendo mi nombre.",
     () => {
       recognition.start();
       reiniciarSuspension();
