@@ -124,7 +124,7 @@ async function iniciarAplicacion() {
   estadoSistema.textContent = "Di: Nova + comando";
 
   // 🔥 OPCIONAL: mensaje hablado (no bloquea)
-  hablar("Hola, soy Nova. Di Nova más la orden.");
+  hablar("Hola, soy Nova, tu asistente de voz. Estoy lista para recibir tus instrucciones.Recuerda comenzar cada comando diciendo mi nombre");
 
   recognition.start();
 }
