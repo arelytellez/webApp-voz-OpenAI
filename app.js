@@ -1,32 +1,18 @@
-/************************************************************
- * CONTROL POR VOZ CON IA - API KEY DESDE MOCKAPI
- ************************************************************/
-
-/* ==========================
-   VARIABLES GLOBALES
-   ========================== */
-
 let OPENAI_API_KEY = null;
 const MOCKAPI_URL = "https://698def71aded595c2530911b.mockapi.io/api/v1/apikey";
 
-/* ==========================
-   ELEMENTOS DEL DOM
-   ========================== */
 const estadoMicrofono = document.getElementById("estadoMicrofono");
 const estadoSistema = document.getElementById("estadoSistema");
 const textoEscuchado = document.getElementById("textoEscuchado");
 const ordenRecibida = document.getElementById("ordenRecibida");
 const resultado = document.getElementById("resultado");
+const boton = document.getElementById("btnActivar");
+
+let sistemaActivo = false;
 
 /* ==========================
-   VARIABLES DE CONTROL
-   ========================== */
-let suspendido = false;
-let temporizadorSuspension;
-
-/* ==========================
-   COMANDOS PERMITIDOS
-   ========================== */
+   COMANDOS
+========================== */
 const comandosValidos = [
   "avanzar",
   "retroceder",
@@ -40,182 +26,107 @@ const comandosValidos = [
 ];
 
 /* ==========================
-   VOZ DE NOVA
-   ========================== */
+   VOZ
+========================== */
 function hablar(texto, callback = null) {
   const mensaje = new SpeechSynthesisUtterance(texto);
-  mensaje.lang = "es-MX";
+  mensaje.lang = "es-ES";
 
   mensaje.onend = () => {
     if (callback) callback();
   };
 
-  window.speechSynthesis.cancel();
   window.speechSynthesis.speak(mensaje);
 }
 
 /* ==========================
-   🔑 OBTENER API KEY
-   ========================== */
+   API KEY
+========================== */
 async function obtenerApiKey() {
   try {
     const response = await fetch(MOCKAPI_URL);
     const data = await response.json();
     OPENAI_API_KEY = data[0].apikey;
-
   } catch (error) {
     estadoSistema.textContent = "Error al cargar API Key";
   }
 }
 
 /* ==========================
-   CONFIGURACIÓN DE VOZ
-   ========================== */
+   RECONOCIMIENTO
+========================== */
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
 const recognition = new SpeechRecognition();
-recognition.lang = "es-MX";
+recognition.lang = "es-ES";
 recognition.continuous = true;
-recognition.interimResults = true;
+recognition.interimResults = false;
 
-/* ==========================
-   MICRÓFONO ACTIVO
-   ========================== */
 recognition.onstart = () => {
   estadoMicrofono.textContent = "🎧 Micrófono activo";
-  estadoSistema.textContent = "Escuchando...";
+};
+
+recognition.onerror = (event) => {
+  estadoSistema.textContent = "Error micrófono: " + event.error;
+};
+
+recognition.onresult = (event) => {
+  const texto = event.results[event.results.length - 1][0].transcript
+    .toLowerCase()
+    .trim();
+
+  textoEscuchado.textContent = texto;
+
+  /* ACTIVACIÓN */
+  if (texto.includes("nova")) {
+    sistemaActivo = true;
+    estadoSistema.textContent = "Sistema activado";
+    hablar("Te escucho");
+    return;
+  }
+
+  if (!sistemaActivo) {
+    estadoSistema.textContent = "Di 'Nova' para activarme";
+    return;
+  }
+
+  /* BUSCAR COMANDO */
+  const comandoEncontrado = comandosValidos.find(cmd =>
+    texto.includes(cmd)
+  );
+
+  if (comandoEncontrado) {
+    ordenRecibida.textContent = comandoEncontrado;
+    estadoSistema.textContent = "Orden ejecutada";
+    hablar("Orden " + comandoEncontrado);
+  } else {
+    estadoSistema.textContent = "Orden no reconocida";
+  }
+
+  sistemaActivo = false;
 };
 
 /* ==========================
-   RESULTADOS DE VOZ
-   ========================== */
-recognition.onresult = async (event) => {
-
-  reiniciarSuspension();
-
-  let textoParcial = "";
-  let textoFinal = "";
-
-  for (let i = event.resultIndex; i < event.results.length; i++) {
-    if (event.results[i].isFinal) {
-      textoFinal += event.results[i][0].transcript;
-    } else {
-      textoParcial += event.results[i][0].transcript;
-    }
-  }
-
-  const textoActual = (textoParcial || textoFinal).toLowerCase().trim();
-  textoEscuchado.textContent = textoActual;
-
-  /* ACTIVACIÓN CON NOVA */
-  if (textoActual.includes("nova")) {
-    suspendido = false;
-    estadoSistema.textContent = "🔊 Sistema activado";
-    ordenRecibida.textContent = "Ninguna";
-    resultado.textContent = "";
-    return;
-  }
-
-  if (suspendido) {
-    estadoSistema.textContent = "😴 Suspendido (di 'Nova')";
-    return;
-  }
-
-  if (textoParcial) {
-    estadoSistema.textContent = "Reconociendo voz...";
-    return;
-  }
-
-  estadoSistema.textContent = "Procesando orden...";
-  await validarOrdenIA(textoFinal.toLowerCase().trim());
-};
-
-/* ==========================
-   SUSPENSIÓN AUTOMÁTICA
-   ========================== */
-function reiniciarSuspension() {
-  clearTimeout(temporizadorSuspension);
-
-  temporizadorSuspension = setTimeout(() => {
-    suspendido = true;
-    estadoSistema.textContent = "😴 Suspendido (di 'Nova')";
-    textoEscuchado.textContent = "---";
-    ordenRecibida.textContent = "Ninguna";
-  }, 5000);
-}
-
-/* ==========================
-   VALIDAR ORDEN CON IA
-   ========================== */
-async function validarOrdenIA(texto) {
-
-  if (!OPENAI_API_KEY) return;
-
-  try {
-    const response = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `
-Responde SOLO con:
-avanzar, retroceder, detener,
-vuelta derecha, vuelta izquierda,
-90 derecha, 90 izquierda,
-360 derecha, 360 izquierda
-o "Orden no reconocida"
-`
-            },
-            { role: "user", content: texto }
-          ]
-        })
-      }
-    );
-
-    const data = await response.json();
-    const respuesta = data.choices[0].message.content.trim();
-
-    // Solo actualizar internamente, no mostrar en pantalla ni decir por voz
-    if (comandosValidos.includes(respuesta)) {
-      ordenRecibida.textContent = respuesta;
-      estadoSistema.textContent = "Orden ejecutada"; // opcional para debug
-    } else {
-      estadoSistema.textContent = "Esperando nueva orden..."; // opcional para debug
-    }
-
-  } catch (error) {
-    estadoSistema.textContent = "Error con la IA";
-  }
-}
-
-/* ==========================
-   INICIO DE LA APLICACIÓN
-   ========================== */
+   INICIAR
+========================== */
 async function iniciarAplicacion() {
+
+  boton.disabled = true;
+  boton.innerText = "Nova Activada";
 
   await obtenerApiKey();
 
-  estadoMicrofono.textContent = "🎤 Micrófono inactivo";
-  estadoSistema.textContent = "Iniciando asistente...";
-
-  // 🎙 INTRODUCCIÓN Y ACTIVACIÓN AUTOMÁTICA
   hablar(
-    "Hola, soy Nova, tu asistente de voz. Estoy listo para recibir tus instrucciones. Recuerda comenzar cada comando diciendo mi nombre.",
+    "Hola, soy Nova, tu asistente de voz. Estoy lista para recibir tus instrucciones.",
     () => {
       recognition.start();
-      reiniciarSuspension();
+      estadoSistema.textContent = "Di 'Nova' para activarme";
     }
   );
 }
 
-iniciarAplicacion();
+boton.addEventListener("click", iniciarAplicacion);
+
+
 

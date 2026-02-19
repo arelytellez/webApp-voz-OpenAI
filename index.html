@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Nova - Asistente de Voz</title>
 
-  <!-- ✅ FAVICON CORREGIDO -->
+  <!-- Favicon -->
   <link rel="icon" type="image/png" href="img/favicon.png">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -63,15 +63,20 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
-    h1 {
-      margin-bottom: 10px;
+    button {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      margin-bottom: 20px;
     }
 
-    .descripcion {
-      margin-bottom: 20px;
-      color: #555;
-      line-height: 1.6;
-      font-size: 15px;
+    button:disabled {
+      background: gray;
+      cursor: default;
     }
 
     .status {
@@ -79,41 +84,15 @@
       font-weight: bold;
     }
 
-    hr {
-      margin: 20px 0;
-    }
-
-    .section {
-      margin-bottom: 25px;
-    }
-
-    .section strong {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 15px;
-    }
-
-    .box {
-      background: #f1f5f9;
+    .box, .highlight, .result {
       padding: 15px;
       border-radius: 8px;
+      margin-bottom: 15px;
     }
 
-    .highlight {
-      background: #cde7f0;
-      padding: 18px;
-      border-radius: 8px;
-      font-weight: bold;
-      color: #0f4c5c;
-      font-size: 16px;
-    }
-
-    .result {
-      background: #f8fafc;
-      padding: 15px;
-      border-radius: 8px;
-      color: #666;
-    }
+    .box { background: #f1f5f9; }
+    .highlight { background: #cde7f0; }
+    .result { background: #f8fafc; }
   </style>
 </head>
 
@@ -130,9 +109,7 @@
       <li>Nova vuelta derecha</li>
       <li>Nova vuelta izquierda</li>
       <li>Nova 90 derecha</li>
-      <li>Nova 90 izquierda</li>
       <li>Nova 360 derecha</li>
-      <li>Nova 360 izquierda</li>
     </ul>
   </aside>
 
@@ -141,9 +118,12 @@
 
       <h1>Nova - Asistente de Voz</h1>
 
-      <div class="descripcion">
-        Hola, soy Nova, tu asistente de voz. Estoy lista para recibir tus instrucciones. Recuerda comenzar cada comando diciendo mi nombre.
-      </div>
+      <p>
+        Hola, soy Nova, tu asistente de voz.
+        Presiona el botón para activarme.
+      </p>
+
+      <button id="btnActivar">Activar Nova</button>
 
       <div id="estadoMicrofono" class="status">
         🎤 Micrófono inactivo
@@ -153,19 +133,17 @@
         💤 Esperando activación
       </div>
 
-      <hr>
-
-      <div class="section">
+      <div>
         <strong>Texto Escuchado:</strong>
         <div class="box" id="textoEscuchado">---</div>
       </div>
 
-      <div class="section">
+      <div>
         <strong>Orden Recibida:</strong>
         <div class="highlight" id="ordenRecibida">Ninguna</div>
       </div>
 
-      <div class="section">
+      <div>
         <strong>Resultado:</strong>
         <div class="result" id="resultado">Esperando activación...</div>
       </div>
