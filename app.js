@@ -219,4 +219,3 @@ async function iniciarAplicacion() {
 
 iniciarAplicacion();
 
-
